@@ -23,9 +23,15 @@
     <span style="font-size: 30px; cursor: pointer" onclick="openNav()"
       >&#9776; open</span
     >
+    <script>
+      function openNav() {
+        document.getElementById("mySidenav").style.width = "250px";
+      }
 
-    <!-- Bouton "Changer d'objet" en dehors de la scène AR -->
-    <button onclick="changeObject()">Changer d'objet</button>
+      function closeNav() {
+        document.getElementById("mySidenav").style.width = "0";
+      }
+    </script>
 
     <!-- Import maps polyfill -->
     <!-- Remove this when import maps will be widely supported -->
@@ -43,6 +49,9 @@
       }
     </script>
 
+    <button class="btn lavoirpendentif"></button>
+    <button class="btn2 lavoirpaspendentif"></button>
+    
     <script type="module">
       import * as THREE from "three";
       import { ARButton } from "three/addons/webxr/ARButton.js";
@@ -53,8 +62,6 @@
       let controller;
 
       let reticle;
-      let modelInstances = []; // tableau pour stocker les instances du modèle
-      const loader = new GLTFLoader();
 
       let hitTestSource = null;
       let hitTestSourceRequested = false;
@@ -93,7 +100,10 @@
           ARButton.createButton(renderer, { requiredFeatures: ["hit-test"] })
         );
 
-        loader.load("skull.glb", (gltf) => {
+        let modelInstances = []; // tableau pour stocker les instances du modèle
+
+        const loader = new GLTFLoader();
+        loader.load("avion.glb", (gltf) => {
           const originalModel = gltf.scene;
           originalModel.scale.set(0.05, 0.05, 0.05);
           originalModel.visible = false;
@@ -139,20 +149,6 @@
 
       function onSelect() {
         // Fonction onSelect modifiée si nécessaire
-      }
-
-      function changeObject() {
-        modelInstances.forEach((instance) => {
-          scene.remove(instance);
-        });
-
-        loader.load("canard.glb", (gltf) => {
-          const newModel = gltf.scene;
-          newModel.visible = false;
-          newModel.scale.set(0.05, 0.05, 0.05);
-          scene.add(newModel);
-          modelInstances.push(newModel);
-        });
       }
 
       function onWindowResize() {
