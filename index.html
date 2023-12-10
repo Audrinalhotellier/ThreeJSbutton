@@ -24,15 +24,8 @@
       >&#9776; open</span
     >
 
-    <script>
-      function openNav() {
-        document.getElementById("mySidenav").style.width = "250px";
-      }
-
-      function closeNav() {
-        document.getElementById("mySidenav").style.width = "0";
-      }
-    </script>
+    <!-- Bouton "Changer d'objet" en dehors de la scène AR -->
+    <button onclick="changeObject()">Changer d'objet</button>
 
     <!-- Import maps polyfill -->
     <!-- Remove this when import maps will be widely supported -->
@@ -58,7 +51,7 @@
       let container;
       let camera, scene, renderer;
       let controller;
-      let controller2; // Ajout d'un deuxième contrôleur
+
       let reticle;
       let modelInstances = []; // tableau pour stocker les instances du modèle
       const loader = new GLTFLoader();
@@ -96,7 +89,9 @@
 
         //
 
-        ARButton.createButton(renderer, { requiredFeatures: ["hit-test"] });
+        document.body.appendChild(
+          ARButton.createButton(renderer, { requiredFeatures: ["hit-test"] })
+        );
 
         loader.load("skull.glb", (gltf) => {
           const originalModel = gltf.scene;
@@ -104,10 +99,27 @@
           originalModel.visible = false;
           scene.add(originalModel);
 
-          // Créez un deuxième contrôleur pour le deuxième bouton
-          controller2 = renderer.xr.getController(1);
-          controller2.addEventListener("selectstart", onSelect);
-          scene.add(controller2);
+          controller = renderer.xr.getController(0);
+          controller.addEventListener("select", () => {
+            if (reticle.visible) {
+              const newModel = originalModel.clone();
+              newModel.visible = true;
+
+              // Ajustez la taille ici (0.1 est un exemple, essayez différentes valeurs)
+              const scaleValue = 0.1;
+              newModel.scale.set(scaleValue, scaleValue, scaleValue);
+
+              reticle.matrix.decompose(
+                newModel.position,
+                newModel.quaternion,
+                newModel.scale
+              );
+              scene.add(newModel);
+              modelInstances.push(newModel);
+            }
+          });
+
+          scene.add(controller);
         });
 
         //
@@ -125,17 +137,22 @@
         window.addEventListener("resize", onWindowResize);
       }
 
-      function onSelect(event) {
-        const controller = event.target;
-        const reticlePosition = new THREE.Vector3();
-        reticlePosition.setFromMatrixPosition(reticle.matrixWorld);
+      function onSelect() {
+        // Fonction onSelect modifiée si nécessaire
+      }
 
-        // Ajoutez votre logique pour changer l'objet ici
-        const newModel = modelInstances[modelInstances.length - 1].clone();
-        newModel.visible = true;
-        newModel.position.copy(reticlePosition);
-        scene.add(newModel);
-        modelInstances.push(newModel);
+      function changeObject() {
+        modelInstances.forEach((instance) => {
+          scene.remove(instance);
+        });
+
+        loader.load("canard.glb", (gltf) => {
+          const newModel = gltf.scene;
+          newModel.visible = false;
+          newModel.scale.set(0.05, 0.05, 0.05);
+          scene.add(newModel);
+          modelInstances.push(newModel);
+        });
       }
 
       function onWindowResize() {
