@@ -23,6 +23,9 @@
     <span style="font-size: 30px; cursor: pointer" onclick="openNav()"
       >&#9776; open</span
     >
+
+    <button onclick="changeObject()">Changer d'objet</button>
+
     <script>
       function openNav() {
         document.getElementById("mySidenav").style.width = "250px";
@@ -30,6 +33,30 @@
 
       function closeNav() {
         document.getElementById("mySidenav").style.width = "0";
+      }
+
+      // Définissez une liste d'URLs de modèles GLB que vous souhaitez utiliser
+      const modelUrls = ["canard.glb", "skull.glb", "avion.glb"];
+      let currentModelIndex = 0;
+
+      function changeObject() {
+        // Supprimez les instances actuelles du modèle de la scène
+        modelInstances.forEach((instance) => {
+          scene.remove(instance);
+        });
+
+        // Incrémente l'indice du modèle actuel
+        currentModelIndex = (currentModelIndex + 1) % modelUrls.length;
+
+        // Chargez le nouveau modèle
+        const newModelUrl = modelUrls[currentModelIndex];
+        loader.load(newModelUrl, (gltf) => {
+          const newModel = gltf.scene;
+          newModel.visible = false;
+          newModel.scale.set(0.05, 0.05, 0.05);
+          scene.add(newModel);
+          modelInstances.push(newModel);
+        });
       }
     </script>
 
@@ -59,6 +86,8 @@
       let controller;
 
       let reticle;
+      let modelInstances = []; // tableau pour stocker les instances du modèle
+      const loader = new GLTFLoader();
 
       let hitTestSource = null;
       let hitTestSourceRequested = false;
@@ -97,9 +126,6 @@
           ARButton.createButton(renderer, { requiredFeatures: ["hit-test"] })
         );
 
-        let modelInstances = []; // tableau pour stocker les instances du modèle
-
-        const loader = new GLTFLoader();
         loader.load("skull.glb", (gltf) => {
           const originalModel = gltf.scene;
           originalModel.scale.set(0.05, 0.05, 0.05);
